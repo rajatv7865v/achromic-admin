@@ -42,12 +42,12 @@ const AddMagazineForm: React.FC<AddMagazineFormProps> = ({ onClose }) => {
     publishDate: "",
     categories: [] as string[],
   });
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [_, setValidationError] = useState<string | null>(null);
   const [availableCategories, setAvailableCategories] = useState<Category[]>(
     []
   );
 
-  const { run, loading, error, reset } = useAsync(createMagazine, {
+  const { run, loading,  reset } = useAsync(createMagazine, {
     onSuccess: () => {
       toast.success("Magazine created successfully");
       setFormData({
@@ -248,11 +248,7 @@ const AddMagazineForm: React.FC<AddMagazineFormProps> = ({ onClose }) => {
         />
       </div>
 
-      {(validationError || error) && (
-        <p className='text-red-500 text-sm px-1'>
-          {validationError || error?.message || "Failed to create magazine"}
-        </p>
-      )}
+  
 
       <button
         type='submit'

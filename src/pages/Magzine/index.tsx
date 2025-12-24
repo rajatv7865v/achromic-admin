@@ -39,6 +39,7 @@ const Magzine: React.FC<SpeakerInterface> = () => {
   const [isModalShow, setIsModalShow] = useState(false);
 
   const { run, loading, error } = useAsync(getMagazines);
+  console.log(loading,error)
   useEffect(() => {
     const fetch = async () => {
       const res: any = await run();

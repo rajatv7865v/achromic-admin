@@ -18,7 +18,7 @@ const AddPartner: React.FC<AddEventInterface> = ({
 }) => {
   if (!isModalShow) return null;
   const [bannerFile, setBannerFile] = useState<File | null>(null);
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [_, setValidationError] = useState<string | null>(null);
   const [availableEvents, setAvailableEvents] = useState<[]>([]);
   const { run: fetchEvent } = useAsync(getEvents);
   useEffect(() => {

@@ -70,7 +70,7 @@ const AddSpeaker: React.FC<AddSpeakerInterface> = ({
     }
   }, [avatarFile]);
 
-  const { run, loading, error, reset } = useAsync(createSpeaker, {
+  const { run, loading } = useAsync(createSpeaker, {
     onSuccess: () => {
       toast.success("Speaker created successfully");
       setFormData({

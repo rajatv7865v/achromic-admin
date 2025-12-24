@@ -37,7 +37,7 @@ const Status = ({ status }: { status: string }) => {
 const Registeration: React.FC<RegisterationInterface> = () => {
   const [data, setData] = useState<DataRow[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [isModalShow, setIsModalShow] = useState(false);
+  const [_ , setIsModalShow] = useState(false);
 
   useEffect(() => {
     // TODO: Fetch registrations from API

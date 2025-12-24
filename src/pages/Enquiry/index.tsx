@@ -38,7 +38,7 @@ const Status = ({ status }: { status: string }) => {
 const Enquiry: React.FC<EnquiryInterface> = () => {
   const [data, setData] = useState<DataRow[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [isModalShow, setIsModalShow] = useState(false);
+  const [_, setIsModalShow] = useState(false);
 
   useEffect(() => {
     // TODO: Fetch enquiries from API

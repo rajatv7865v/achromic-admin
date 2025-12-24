@@ -1,6 +1,5 @@
 import React from "react";
-import TableHeader from "../TableHeader";
-import Pagination from "../Pagonation";
+
 
 export interface TableColumn<T> {
   key: keyof T;
@@ -23,11 +22,8 @@ export function Table<T extends Record<string, any>>({
   onCheckboxChange,
   rowKey,
 }: TableProps<T>) {
-  const allIds = data.map((item) => item[rowKey]);
 
-  const toggleAll = () => {
-    allIds.forEach((id) => onCheckboxChange(id));
-  };
+console.log(onCheckboxChange)
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
