@@ -41,7 +41,7 @@ const Gallery: React.FC<GalleryInterface> = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
+  const [_, setTotalItems] = useState(0);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [galleryToDelete, setGalleryToDelete] = useState<{ id: string; title: string } | null>(null);
 
@@ -51,7 +51,7 @@ const Gallery: React.FC<GalleryInterface> = () => {
     return row.event._id; // Using the event ID from the event object
   };
 
-  const { run: fetchGalleries, loading: fetching } = useAsync(getGalleries, {
+  const { run: fetchGalleries,  } = useAsync(getGalleries, {
     onSuccess: (result: any) => {
       if (result?.data) {
         setData(result.data.data);
@@ -65,7 +65,7 @@ const Gallery: React.FC<GalleryInterface> = () => {
   });
 
   const { run: deleteGalleryApi, loading: deleting } = useAsync(deleteGallery, {
-    onSuccess: (result: any) => {
+    onSuccess: (_: any) => {
       toast.success("Gallery deleted successfully");
       setDeleteModalOpen(false);
       setGalleryToDelete(null);
@@ -130,7 +130,7 @@ const Gallery: React.FC<GalleryInterface> = () => {
     {
       key: "event",
       label: "Event Name",
-      render: (value, row) => row.event?.name || "N/A",
+      render: (_, row) => row.event?.name || "N/A",
     },
     {
       key: "filePath",
@@ -140,7 +140,7 @@ const Gallery: React.FC<GalleryInterface> = () => {
     {
       key: "_id",
       label: "Action",
-      render: (value, row) => (
+      render: (_, row) => (
         <div className='flex items-center gap-3 text-[13px]'>
           <Eye 
             className='text-gray-600 cursor-pointer' 
@@ -161,10 +161,10 @@ const Gallery: React.FC<GalleryInterface> = () => {
     },
   ];
 
-  const handleSearchChange = (searchValue: string) => {
-    setSearch(searchValue);
-    setPage(1); // Reset to first page when searching
-  };
+  // const handleSearchChange = (searchValue: string) => {
+  //   setSearch(searchValue);
+  //   setPage(1); // Reset to first page when searching
+  // };
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);

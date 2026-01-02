@@ -4,10 +4,9 @@ import { Check, Eye, Linkedin, Trash2 } from "lucide-react";
 import { Table } from "../../components/common/Table";
 import AddSpeaker from "../../components/modal/AddSpeaker";
 import TableHeader, {
-  type EventItem,
+
 } from "../../components/common/TableHeader";
 import { getSpeakers, deleteSpeaker } from "../../services/speaker";
-import { useAsync } from "../../hooks";
 import Pagination from "../../components/common/Pagonation";
 import ConfirmModal from "../../components/modal/ConfirmModal";
 import toast from "react-hot-toast";

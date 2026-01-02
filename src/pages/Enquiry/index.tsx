@@ -55,7 +55,7 @@ const Enquiry: React.FC<EnquiryInterface> = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [enquiryToDelete, setEnquiryToDelete] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
+console.log(error)
   const { run } = useAsync(getEnquiries);
 
   const fetchEnquiries = async () => {

@@ -39,13 +39,13 @@ const Partner: React.FC<PartnerInterface> = () => {
   const [limit] = useState(10);
   const [sortBy] = useState("createdAt");
   const [sortOrder] = useState<"asc" | "desc">("desc");
-  const [loading, setLoading] = useState(true);
+  const [_, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [partnerToDelete, setPartnerToDelete] = useState<{ id: string | number; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
+console.log(error)
   const { run } = useAsync(getPartner);
   const fetchPartners = async () => {
     setLoading(true);

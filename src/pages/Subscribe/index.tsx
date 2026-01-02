@@ -44,6 +44,7 @@ const Subscribe: React.FC<SubscribeInterface> = () => {
 
   const { run } = useAsync(getSubscribers);
 
+  console.log(error)
   const fetchSubscribers = async () => {
     setLoading(true);
     setError(null);

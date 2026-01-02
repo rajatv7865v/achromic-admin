@@ -137,7 +137,7 @@ console.log("ddtdt",data)
     {
       key: "eventId",
       label: "Event Name",
-      render: (value, row) => row.eventId?.name || "N/A",
+      render: (_, row) => row.eventId?.name || "N/A",
     },
     {
       key: "isActive",
