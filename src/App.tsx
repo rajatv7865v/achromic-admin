@@ -12,6 +12,9 @@ import Registeration from "./pages/Registeration";
 import Enquiry from "./pages/Enquiry";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
+import Gallery from "./pages/Gallery";
+import GalleryDetail from "./pages/GalleryDetail";
+import Subscribe from "./pages/Subscribe";
 
 const App: React.FC = () => {
   return (
@@ -34,6 +37,9 @@ const App: React.FC = () => {
       <Route path='/sponsor' element={<Sponsor />} />
       <Route path='/registeration' element={<Registeration />} />
       <Route path='/enquiry' element={<Enquiry />} />
+      <Route path='/gallery' element={<Gallery />} />
+      <Route path='/gallery/:eventId' element={<GalleryDetail />} />
+      <Route path='/subscribe' element={<Subscribe />} />
 
       {/* Simple fallback for unknown routes */}
       <Route path='*' element={<div>Page not found</div>} />

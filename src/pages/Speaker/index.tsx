@@ -3,9 +3,14 @@ import DashboardLayout from "../../layout/dashboardLayout";
 import { Check, Eye, Linkedin, Trash2 } from "lucide-react";
 import { Table } from "../../components/common/Table";
 import AddSpeaker from "../../components/modal/AddSpeaker";
-import TableHeader from "../../components/common/TableHeader";
-import { getSpeakers } from "../../services/speaker";
+import TableHeader, {
+  type EventItem,
+} from "../../components/common/TableHeader";
+import { getSpeakers, deleteSpeaker } from "../../services/speaker";
 import { useAsync } from "../../hooks";
+import Pagination from "../../components/common/Pagonation";
+import ConfirmModal from "../../components/modal/ConfirmModal";
+import toast from "react-hot-toast";
 
 interface SpeakerInterface {
   // Define your interface properties here
@@ -16,134 +21,195 @@ export interface TableColumn<T> {
   render?: (value: any, row: T) => React.ReactNode;
 }
 
-interface DataRow {
-  id: string | number;
+interface SpeakerItem {
+  _id: string;
   name: string;
   designation: string;
   company: string;
   country: string;
   avatar: string;
   linkedin: string;
-  eventId: string;
-  createdAt?: string;
+  eventId: {
+    _id: string;
+    name: string;
+    id: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
 }
 
-const columns: TableColumn<DataRow>[] = [
-  {
-    key: "avatar",
-    label: "Avatar",
-    render: (value) =>
-      value ? (
-        <img
-          src={value}
-          alt="Speaker"
-          className="w-10 h-10 rounded-full object-cover"
-        />
-      ) : (
-        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xs">
-          No Image
-        </div>
-      ),
-  },
-  {
-    key: "name",
-    label: "Name",
-  },
-  {
-    key: "designation",
-    label: "Designation",
-  },
-  {
-    key: "company",
-    label: "Company",
-  },
-  {
-    key: "country",
-    label: "Country",
-  },
-  {
-    key: "linkedin",
-    label: "LinkedIn",
-    render: (value) =>
-      value ? (
-        <a
-          href={value}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-600 hover:underline"
-        >
-         <Linkedin/>
-        </a>
-      ) : (
-        <span className="text-gray-400">-</span>
-      ),
-  },
-  {
-    key: "createdAt",
-    label: "Created At",
-    render: (value) => {
-      if (!value) return <span className="text-gray-400">-</span>;
-      const date = new Date(value);
-      if (isNaN(date.getTime()))
-        return <span className="text-gray-400">-</span>;
-      return date.toLocaleDateString();
-    },
-  },
-  {
-    key: "id",
-    label: "Action",
-    render: () => (
-      <div className="flex items-center gap-3 text-[13px]">
-        <Eye className="text-gray-600 cursor-pointer hover:text-gray-800" />
-        <Check className="text-green-600 cursor-pointer hover:text-green-700" />
-        <Trash2 className="text-red-600 cursor-pointer hover:text-red-700" />
-      </div>
-    ),
-  },
-];
-
 const Speaker: React.FC<SpeakerInterface> = () => {
-  const [data, setData] = useState<DataRow[]>([]);
-  const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
+  const [data, setData] = useState<SpeakerItem[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isModalShow, setIsModalShow] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [speakerToEdit, setSpeakerToEdit] = useState<SpeakerItem | undefined>(
+    undefined
+  );
+  const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [sortBy] = useState("createdAt");
+  const [sortOrder] = useState<"asc" | "desc">("desc");
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [speakerToDelete, setSpeakerToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const { run } = useAsync(getSpeakers);
+  const handleEditClick = (speaker: SpeakerItem) => {
+    setSpeakerToEdit(speaker);
+    setIsModalShow(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalShow(false);
+    setSpeakerToEdit(undefined);
+  };
+
+  const columns: TableColumn<SpeakerItem>[] = [
+    {
+      key: "avatar",
+      label: "Avatar",
+      render: (value) =>
+        value ? (
+          <img
+            src={value}
+            alt="Speaker"
+            className="w-10 h-10 rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-xs">
+            No Image
+          </div>
+        ),
+    },
+    {
+      key: "name",
+      label: "Name",
+    },
+    {
+      key: "designation",
+      label: "Designation",
+    },
+    {
+      key: "company",
+      label: "Company",
+    },
+    {
+      key: "country",
+      label: "Country",
+    },
+    {
+      key: "linkedin",
+      label: "LinkedIn",
+      render: (value) =>
+        value ? (
+          <a
+            href={value}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:underline"
+          >
+            <Linkedin />
+          </a>
+        ) : (
+          <span className="text-gray-400">-</span>
+        ),
+    },
+
+    {
+      key: "createdAt",
+      label: "Created At",
+      render: (value) => {
+        if (!value) return <span className="text-gray-400">-</span>;
+        const date = new Date(value);
+        if (isNaN(date.getTime()))
+          return <span className="text-gray-400">-</span>;
+        return date.toLocaleDateString();
+      },
+    },
+    {
+      key: "_id",
+      label: "Action",
+      render: (_, row) => (
+        <div className="flex items-center gap-3 text-[13px]">
+          <Eye
+            className="text-gray-600 cursor-pointer hover:text-gray-800"
+            onClick={() => handleEditClick(row)}
+          />
+          <Check className="text-green-600 cursor-pointer hover:text-green-700" />
+          <Trash2 
+            className="text-red-600 cursor-pointer hover:text-red-700" 
+            onClick={() => handleDeleteClick(row._id, row.name)}
+          />
+        </div>
+      ),
+    },
+  ];
+
+
 
   const fetchSpeakers = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res: any = await run();
+      // Build query parameters for pagination
+      const params = {
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        ...(selectedEvent && { eventId: selectedEvent }), // Include selected event if available
+      };
+        
+      const res: any = await getSpeakers(params);
       console.log("res", res);
       if (!res) {
         setData([]);
         setLoading(false);
         return;
       }
-
-      // Map API response to DataRow shape
+  
+      // Map API response to SpeakerItem shape
       const speakers = Array.isArray(res?.data?.data?.data)
         ? res.data.data.data
+        : Array.isArray(res?.data?.data)
+        ? res.data.data
         : Array.isArray(res?.data)
         ? res.data
         : [];
-
+          
+      // Extract pagination info
+      const meta = res?.data?.data?.meta || {};
+      const totalPagesValue = Number(meta.totalPages) || 1;
+      const totalValue = Number(meta.total) || speakers.length;
+        
+      setTotalPages(totalPagesValue);
+      setTotal(totalValue);
+  
       console.log("speakers", speakers);
-
-      const mapped: DataRow[] = speakers.map((item: any) => ({
-        id: item._id || item.id,
+  
+      const mapped: SpeakerItem[] = speakers.map((item: any) => ({
+        _id: item._id || item.id,
         name: item?.name || "",
         designation: item?.designation || "",
-        company: item?.organization || "",
-        country: item.country || "",
-        avatar: item.avatar || "",
-        linkedin: item.linkedin || "",
-        eventName: item?.event?.name || "",
-        createdAt: item.createdAt || "",
+        company: item?.company || item?.organization || "",
+        country: item?.country || "",
+        avatar: item?.avatar || "",
+        linkedin: item?.linkedin || "",
+        eventId: item?.eventId ||
+          item?.event || {
+            _id: "",
+            name: "",
+            id: "",
+          },
+        createdAt: item?.createdAt || "",
+        updatedAt: item?.updatedAt || "",
+        __v: item?.__v || 0,
       }));
-      console.log("map", mapped);
       setData(mapped);
     } catch (error: any) {
       console.error("Error fetching speakers:", error);
@@ -153,16 +219,23 @@ const Speaker: React.FC<SpeakerInterface> = () => {
       setLoading(false);
     }
   };
-  console.log("data", data);
 
   useEffect(() => {
     fetchSpeakers();
-  }, [run]);
+  }, [page, selectedEvent]);
 
-  const handleCheckboxChange = (id: string | number) => {
-    if (id === -1) {
+  const handleEventSelect = (eventId: any) => {
+    setSelectedEvent(eventId?._id);
+    // Reset to first page when event changes
+    setPage(1);
+  };
+
+  console.log("Selected event ID:", selectedEvent);
+
+  const handleCheckboxChange = (id: string) => {
+    if (id === "-1") {
       setSelectedIds((prev) =>
-        prev.length === data.length ? [] : data.map((d) => d.id)
+        prev.length === data.length ? [] : data.map((d) => d._id)
       );
     } else {
       setSelectedIds((prev) =>
@@ -170,6 +243,40 @@ const Speaker: React.FC<SpeakerInterface> = () => {
       );
     }
   };
+
+  const handleDeleteClick = (id: string, name: string) => {
+    setSpeakerToDelete({ id, name });
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!speakerToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteSpeaker(speakerToDelete.id);
+      toast.success("Speaker deleted successfully");
+      setDeleteModalOpen(false);
+      setSpeakerToDelete(null);
+      // Refresh the list
+      fetchSpeakers();
+    } catch (error: any) {
+      const errorMessage = error?.message || "Failed to delete speaker";
+      toast.error(errorMessage);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false);
+    setSpeakerToDelete(null);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
   return (
     <DashboardLayout>
       <section className="p-6">
@@ -179,7 +286,10 @@ const Speaker: React.FC<SpeakerInterface> = () => {
           </h1>
           <p className="text-gray-600">Manage event speakers</p>
         </div>
-        <TableHeader setIsModalShow={setIsModalShow} />
+        <TableHeader
+          setIsModalShow={setIsModalShow}
+          onEventSelect={handleEventSelect}
+        />
         <div className="mt-4">
           {loading && (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
@@ -199,13 +309,30 @@ const Speaker: React.FC<SpeakerInterface> = () => {
                   <p>Click "Add New" to create your first speaker.</p>
                 </div>
               ) : (
-                <Table
-                  columns={columns}
-                  data={data}
-                  rowKey="id"
-                  selectedIds={selectedIds}
-                  onCheckboxChange={handleCheckboxChange}
-                />
+                <>
+                  <Table
+                    columns={columns}
+                    data={data}
+                    rowKey="_id"
+                    selectedIds={selectedIds}
+                    onCheckboxChange={handleCheckboxChange}
+                  />
+                  <div className="mt-4 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-sm text-gray-600">
+                        Showing {data.length} of {total} speakers
+                        {totalPages > 1 && ` (Page ${page} of ${totalPages})`}
+                      </div>
+                    </div>
+                    {totalPages > 1 && (
+                      <Pagination
+                        currentPage={page}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                      />
+                    )}
+                  </div>
+                </>
               )}
             </>
           )}
@@ -213,8 +340,21 @@ const Speaker: React.FC<SpeakerInterface> = () => {
       </section>
       <AddSpeaker
         isModalShow={isModalShow}
-        setIsModalShow={setIsModalShow}
+        setIsModalShow={handleCloseModal}
         onSpeakerCreated={fetchSpeakers}
+        speakerToEdit={speakerToEdit}
+        onSpeakerUpdated={fetchSpeakers}
+      />
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Speaker"
+        message={`Are you sure you want to delete the speaker "${speakerToDelete?.name}"?`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmButtonColor="bg-red-600"
+        isLoading={isDeleting}
       />
     </DashboardLayout>
   );

@@ -31,6 +31,7 @@ const Category: React.FC<CategoryInterface> = () => {
   const [data, setData] = useState<DataRow[]>([]);
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
   const [isModalShow, setIsModalShow] = useState(false);
+  const [categoryToEdit, setCategoryToEdit] = useState<{ id: string | number; name: string; isActive: boolean } | undefined>(undefined);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
@@ -120,9 +121,19 @@ const Category: React.FC<CategoryInterface> = () => {
     setPage(newPage);
   };
 
+  const handleEditClick = (category: DataRow) => {
+    setCategoryToEdit(category);
+    setIsModalShow(true);
+  };
+
   const handleDeleteClick = (id: string | number, name: string) => {
     setCategoryToDelete({ id, name });
     setDeleteModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalShow(false);
+    setCategoryToEdit(undefined); // Reset category to edit when modal closes
   };
 
   const handleDeleteConfirm = async () => {
@@ -184,7 +195,10 @@ const Category: React.FC<CategoryInterface> = () => {
       label: "Action",
       render: (_, row) => (
         <div className='flex items-center gap-3 text-[13px]'>
-          <Eye className='text-gray-600 cursor-pointer hover:text-gray-800' />
+          <Eye 
+            className='text-gray-600 cursor-pointer hover:text-gray-800' 
+            onClick={() => handleEditClick(row)}
+          />
           <Trash2 
             className='text-red-600 cursor-pointer hover:text-red-700' 
             onClick={() => handleDeleteClick(row.id, row.name)}
@@ -252,8 +266,10 @@ const Category: React.FC<CategoryInterface> = () => {
       </section>
       <AddCategory 
         isModalShow={isModalShow} 
-        setIsModalShow={setIsModalShow}
+        setIsModalShow={handleCloseModal}
         onCategoryCreated={fetchCategories}
+        categoryToEdit={categoryToEdit}
+        onCategoryUpdated={fetchCategories}
       />
       <ConfirmModal
         isOpen={deleteModalOpen}

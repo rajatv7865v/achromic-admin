@@ -44,6 +44,7 @@ const AddEvent: React.FC<AddEventInterface> = ({
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [createdEventId, setCreatedEventId] = useState<string | null>(null);
 
+
   useEffect(() => {
     if (bannerFile) {
 
@@ -178,7 +179,15 @@ const AddEvent: React.FC<AddEventInterface> = ({
     const loadSpeakers = async () => {
       const res: any = await fetchSpeakers();
       if (res?.data?.data) {
+        // Handle response with nested data structure
         const speakers = res.data.data.map((speaker: any) => ({
+          id: speaker.id || speaker._id,
+          name: speaker.name || "",
+        }));
+        setAvailableSpeakers(speakers);
+      } else if (Array.isArray(res?.data)) {
+        // Handle response with direct array
+        const speakers = res.data.map((speaker: any) => ({
           id: speaker.id || speaker._id,
           name: speaker.name || "",
         }));
@@ -389,7 +398,7 @@ const AddEvent: React.FC<AddEventInterface> = ({
   };
 
   return (
-    <ModalLayout title='Add Event' setIsModalShow={setIsModalShow}>
+    <ModalLayout title='Add Event' setIsModalShow={setIsModalShow} className="w-[80%] min-h-[70vh] max-h-[90vh] overflow-y-auto rounded-lg">
       {/* Tabs */}
       
 

@@ -13,6 +13,8 @@ interface TableProps<T> {
   selectedIds: (string | number)[];
   onCheckboxChange: any;
   rowKey: keyof T;
+  loading?: boolean;
+  onRowClick?: (row: T) => void;
 }
 
 export function Table<T extends Record<string, any>>({
@@ -21,6 +23,8 @@ export function Table<T extends Record<string, any>>({
   selectedIds,
   onCheckboxChange,
   rowKey,
+  loading = false,
+  onRowClick,
 }: TableProps<T>) {
 
 console.log(onCheckboxChange)
@@ -31,7 +35,7 @@ console.log(onCheckboxChange)
         <table className='min-w-full divide-y divide-gray-200'>
           <thead className='bg-red-500'>
             <tr>
-              {columns.map((col, idx) => (
+              {columns?.map((col, idx) => (
                 <th 
                   key={idx} 
                   className='px-6 py-3 text-left text-xs font-semibold text-gray-800 text-white font-bold uppercase tracking-wider'
@@ -42,14 +46,20 @@ console.log(onCheckboxChange)
             </tr>
           </thead>
           <tbody className='bg-white divide-y divide-gray-200'>
-            {data.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan={columns.length} className="px-6 py-8 text-center text-gray-500">
+                  Loading...
+                </td>
+              </tr>
+            ) : data.length === 0 ? (
               <tr>
                 <td colSpan={columns.length} className="px-6 py-8 text-center text-gray-500">
                   No data available
                 </td>
               </tr>
             ) : (
-              data.map((row, rowIdx) => {
+              data?.map((row, rowIdx) => {
                 const id = row[rowKey];
                 const isSelected = selectedIds.includes(id);
                 return (
@@ -57,7 +67,8 @@ console.log(onCheckboxChange)
                     key={id} 
                     className={`hover:bg-gray-50 transition-colors ${
                       isSelected ? 'bg-blue-50' : ''
-                    }`}
+                    } ${onRowClick ? 'cursor-pointer' : ''}`}
+                    onClick={() => onRowClick && onRowClick(row)}
                   >
                     {columns.map((col, colIdx) => {
                       const rawValue = row[col.key];

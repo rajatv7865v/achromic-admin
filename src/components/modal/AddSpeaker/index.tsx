@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import ModalLayout from "../../../layout/modalLayout";
 import {
   createSpeaker,
+  updateSpeaker,
   type CreateSpeakerData,
 } from "../../../services/speaker";
 import { useAsync } from "../../../hooks";
@@ -13,12 +14,32 @@ interface AddSpeakerInterface {
   isModalShow: boolean;
   setIsModalShow: React.Dispatch<React.SetStateAction<boolean>>;
   onSpeakerCreated?: () => void;
+  speakerToEdit?: {
+    _id: string;
+    name: string;
+    designation: string;
+    company: string;
+    country: string;
+    avatar: string;
+    linkedin: string;
+    eventId: {
+      _id: string;
+      name: string;
+      id: string;
+    };
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+  };
+  onSpeakerUpdated?: () => void;
 }
 
 const AddSpeaker: React.FC<AddSpeakerInterface> = ({
   isModalShow,
   setIsModalShow,
   onSpeakerCreated,
+  speakerToEdit,
+  onSpeakerUpdated,
 }) => {
   if (!isModalShow) return null;
   const [availableEvents, setAvailableEvents] = useState<[]>([]);
@@ -42,13 +63,13 @@ const AddSpeaker: React.FC<AddSpeakerInterface> = ({
   }, [fetchEvent]);
 
   const [formData, setFormData] = useState<CreateSpeakerData>({
-    name: "",
-    designation: "",
-    company: "",
-    country: "",
-    avatar: "",
-    linkedin: "",
-    eventId: "",
+    name: speakerToEdit?.name || "",
+    designation: speakerToEdit?.designation || "",
+    company: speakerToEdit?.company || "",
+    country: speakerToEdit?.country || "",
+    avatar: speakerToEdit?.avatar || "",
+    linkedin: speakerToEdit?.linkedin || "",
+    eventId: speakerToEdit?.eventId?._id || "",
   });
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -70,7 +91,7 @@ const AddSpeaker: React.FC<AddSpeakerInterface> = ({
     }
   }, [avatarFile]);
 
-  const { run, loading } = useAsync(createSpeaker, {
+  const { run: createRun, loading } = useAsync(createSpeaker, {
     onSuccess: () => {
       toast.success("Speaker created successfully");
       setFormData({
@@ -88,6 +109,28 @@ const AddSpeaker: React.FC<AddSpeakerInterface> = ({
     },
     onError: (err: any) => {
       const errorMessage = err?.message || "Failed to create speaker";
+      toast.error(errorMessage);
+    },
+  });
+  
+  const { run: updateRun } = useAsync(updateSpeaker, {
+    onSuccess: () => {
+      toast.success("Speaker updated successfully");
+      setFormData({
+        name: "",
+        designation: "",
+        company: "",
+        country: "",
+        avatar: "",
+        linkedin: "",
+        eventId: "",
+      });
+      setAvatarFile(null);
+      setIsModalShow(false);
+      onSpeakerUpdated?.();
+    },
+    onError: (err: any) => {
+      const errorMessage = err?.message || "Failed to update speaker";
       toast.error(errorMessage);
     },
   });
@@ -118,14 +161,21 @@ const AddSpeaker: React.FC<AddSpeakerInterface> = ({
     }
 
     try {
-      run(formData);
+      if (speakerToEdit) {
+        // Update existing speaker
+        updateRun(speakerToEdit._id, formData);
+      } else {
+        // Create new speaker
+        createRun(formData);
+      }
     } catch (error) {
-      toast.error("Failed to create speaker");
+      const message = speakerToEdit ? "Failed to update speaker" : "Failed to create speaker";
+      toast.error(message);
     }
   };
 
   return (
-    <ModalLayout title={"Add Speaker"} setIsModalShow={setIsModalShow}>
+    <ModalLayout title={speakerToEdit ? "Edit Speaker" : "Add Speaker"} setIsModalShow={setIsModalShow}>
       <section className="py-4 px-5">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

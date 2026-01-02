@@ -342,20 +342,7 @@ const AddAgenda: React.FC<AddAgendaInterface> = ({
 
           {/* Sessions */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className='text-[13px] px-1 text-gray-500'>
-                Sessions<span className='text-red-500 font-semibold'>*</span>
-              </label>
-              <button
-                type="button"
-                onClick={addSession}
-                disabled={loading}
-                className="flex items-center gap-1 text-sm text-green hover:text-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Plus className="w-4 h-4" />
-                Add Session
-              </button>
-            </div>
+            
 
             {agendaData.sessions.length === 0 ? (
               <div className="border border-gray-300 rounded p-4 text-center text-gray-500 text-sm">
@@ -508,6 +495,21 @@ const AddAgenda: React.FC<AddAgendaInterface> = ({
                 ))}
               </div>
             )}
+
+<div className="flex items-center justify-between mb-2">
+              <label className='text-[13px] px-1 text-gray-500'>
+                Sessions<span className='text-red-500 font-semibold'>*</span>
+              </label>
+              <button
+                type="button"
+                onClick={addSession}
+                disabled={loading}
+                className="flex items-center gap-1 text-sm text-green hover:text-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Plus className="w-4 h-4" />
+                Add Session
+              </button>
+            </div>
           </div>
 
           {/* Active Status */}

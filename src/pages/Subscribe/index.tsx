@@ -4,14 +4,15 @@ import { Eye, Trash2 } from "lucide-react";
 import { Table } from "../../components/common/Table";
 import TableHeader from "../../components/common/TableHeader";
 import { useAsync } from "../../hooks";
-import { getEnquiries, deleteEnquiry, type EnquiryItem } from "../../services/enquiry";
+import { getSubscribers, deleteSubscriber, type SubscriberItem } from "../../services/subscribe";
 import ConfirmModal from "../../components/modal/ConfirmModal";
 import toast from "react-hot-toast";
 import Pagination from "../../components/common/Pagonation";
 
-interface EnquiryInterface {
+interface SubscribeInterface {
   // Define your interface properties here
 }
+
 export interface TableColumn<T> {
   key: keyof T;
   label: string;
@@ -20,27 +21,12 @@ export interface TableColumn<T> {
 
 interface DataRow {
   id: string;
-  name: string;
   email: string;
-  phone: string;
-  subject: string;
-  message: string;
   status: string;
   createdAt: string;
 }
 
-const Status = ({ status }: { status: string }) => {
-  const color =
-    status.toLowerCase() === "pending"
-      ? "bg-yellow-500"
-      : status.toLowerCase() === "resolved"
-      ? "bg-green-600"
-      : "bg-gray-500";
-
-  return <span className={`h-3 w-3 ${color} rounded-full inline-block mr-2`} />;
-};
-
-const Enquiry: React.FC<EnquiryInterface> = () => {
+const Subscribe: React.FC<SubscribeInterface> = () => {
   const [data, setData] = useState<DataRow[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [_, setIsModalShow] = useState(false);
@@ -53,12 +39,12 @@ const Enquiry: React.FC<EnquiryInterface> = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [enquiryToDelete, setEnquiryToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [subscriberToDelete, setSubscriberToDelete] = useState<{ id: string; email: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const { run } = useAsync(getEnquiries);
+  const { run } = useAsync(getSubscribers);
 
-  const fetchEnquiries = async () => {
+  const fetchSubscribers = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -78,30 +64,26 @@ const Enquiry: React.FC<EnquiryInterface> = () => {
       }
       
       // Extract pagination info
-      const enquiries = Array.isArray(res.data.data) ? res.data.data : [];
+      const subscribers = Array.isArray(res.data.data) ? res.data.data : [];
       const meta = res.data.meta || {};
       
       const totalPagesValue = Number(meta.totalPages) || 1;
-      const totalValue = Number(meta.total) || enquiries.length;
+      const totalValue = Number(meta.total) || subscribers.length;
       
       setTotalPages(totalPagesValue);
       setTotal(totalValue);
       
-      const mapped: DataRow[] = enquiries.map((item: EnquiryItem) => ({
+      const mapped: DataRow[] = subscribers.map((item: SubscriberItem) => ({
         id: item._id,
-        name: item.name || "",
         email: item.email || "",
-        phone: item.phone || "",
-        subject: item.subject || "",
-        message: item.message || "",
         status: item.isActive ? "Active" : "Inactive",
         createdAt: item.createdAt || "",
       }));
       
       setData(mapped);
     } catch (error: any) {
-      console.error("Error fetching enquiries:", error);
-      setError(error?.message || "Failed to fetch enquiries");
+      console.error("Error fetching subscribers:", error);
+      setError(error?.message || "Failed to fetch subscribers");
       setData([]);
     } finally {
       setLoading(false);
@@ -109,27 +91,27 @@ const Enquiry: React.FC<EnquiryInterface> = () => {
   };
   
   useEffect(() => {
-    fetchEnquiries();
+    fetchSubscribers();
   }, [page]);
 
-  const handleDeleteClick = (id: string, name: string) => {
-    setEnquiryToDelete({ id, name });
+  const handleDeleteClick = (id: string, email: string) => {
+    setSubscriberToDelete({ id, email });
     setDeleteModalOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
-    if (!enquiryToDelete) return;
+    if (!subscriberToDelete) return;
 
     setIsDeleting(true);
     try {
-      await deleteEnquiry(enquiryToDelete.id);
-      toast.success("Enquiry deleted successfully");
+      await deleteSubscriber(subscriberToDelete.id);
+      toast.success("Subscriber deleted successfully");
       setDeleteModalOpen(false);
-      setEnquiryToDelete(null);
+      setSubscriberToDelete(null);
       // Refresh the list
-      fetchEnquiries();
+      fetchSubscribers();
     } catch (error: any) {
-      const errorMessage = error?.message || "Failed to delete enquiry";
+      const errorMessage = error?.message || "Failed to delete subscriber";
       toast.error(errorMessage);
     } finally {
       setIsDeleting(false);
@@ -138,7 +120,7 @@ const Enquiry: React.FC<EnquiryInterface> = () => {
 
   const handleDeleteCancel = () => {
     setDeleteModalOpen(false);
-    setEnquiryToDelete(null);
+    setSubscriberToDelete(null);
   };
   
   const handlePageChange = (newPage: number) => {
@@ -157,29 +139,21 @@ const Enquiry: React.FC<EnquiryInterface> = () => {
     }
   };
 
+  const Status = ({ status }: { status: string }) => {
+    const color =
+      status.toLowerCase() === "active"
+        ? "bg-green-500"
+        : status.toLowerCase() === "inactive"
+        ? "bg-red-500"
+        : "bg-gray-500";
+
+    return <span className={`h-3 w-3 ${color} rounded-full inline-block mr-2`} />;
+  };
+
   const columns: TableColumn<DataRow>[] = [
-    {
-      key: "name",
-      label: "Name",
-    },
     {
       key: "email",
       label: "Email",
-    },
-    {
-      key: "phone",
-      label: "Phone",
-    },
-    {
-      key: "subject",
-      label: "Subject",
-    },
-    {
-      key: "message",
-      label: "Message",
-      render: (value) => (
-        <span className="truncate max-w-xs">{value}</span>
-      ),
     },
     {
       key: "status",
@@ -203,7 +177,7 @@ const Enquiry: React.FC<EnquiryInterface> = () => {
           <Eye className='text-gray-600 cursor-pointer hover:text-gray-800' />
           <Trash2 
             className='text-red-600 cursor-pointer hover:text-red-700' 
-            onClick={() => handleDeleteClick(row.id, row.name)}
+            onClick={() => handleDeleteClick(row.id, row.email)}
           />
         </div>
       ),
@@ -224,7 +198,7 @@ const Enquiry: React.FC<EnquiryInterface> = () => {
         />
         <div className="mt-4 flex justify-between items-center">
           <div className="text-sm text-gray-600">
-            Showing {Math.min((page - 1) * limit + 1, total)} to {Math.min(page * limit, total)} of {total} enquiries
+            Showing {Math.min((page - 1) * limit + 1, total)} to {Math.min(page * limit, total)} of {total} subscribers
           </div>
           <Pagination
             currentPage={page}
@@ -237,8 +211,8 @@ const Enquiry: React.FC<EnquiryInterface> = () => {
         isOpen={deleteModalOpen}
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
-        title="Delete Enquiry"
-        message={`Are you sure you want to delete the enquiry from "${enquiryToDelete?.name}"?`}
+        title="Delete Subscriber"
+        message={`Are you sure you want to delete the subscriber "${subscriberToDelete?.email}"?`}
         confirmText="Delete"
         cancelText="Cancel"
         confirmButtonColor="bg-red-600"
@@ -248,4 +222,4 @@ const Enquiry: React.FC<EnquiryInterface> = () => {
   );
 };
 
-export default Enquiry;
+export default Subscribe;

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import ModalLayout from "../../../layout/modalLayout";
-import { createCategory } from "../../../services/category";
+import { createCategory, updateCategory } from "../../../services/category";
 import toast from "react-hot-toast";
 import { useAsync } from "../../../hooks";
 
@@ -8,12 +8,20 @@ interface AddCategoryInterface {
   isModalShow: boolean;
   setIsModalShow: React.Dispatch<React.SetStateAction<boolean>>;
   onCategoryCreated?: () => void;
+  categoryToEdit?: {
+    id: string | number;
+    name: string;
+    isActive: boolean;
+  };
+  onCategoryUpdated?: () => void;
 }
 
 const AddCategory: React.FC<AddCategoryInterface> = ({
   isModalShow,
   setIsModalShow,
   onCategoryCreated,
+  categoryToEdit,
+  onCategoryUpdated,
 }) => {
   if (!isModalShow) return null;
   return (
@@ -22,6 +30,8 @@ const AddCategory: React.FC<AddCategoryInterface> = ({
         <AddCategoryForm 
           onClose={() => setIsModalShow(false)} 
           onCategoryCreated={onCategoryCreated}
+          categoryToEdit={categoryToEdit}
+          onCategoryUpdated={onCategoryUpdated}
         />
       </section>
     </ModalLayout>
@@ -33,14 +43,20 @@ export default AddCategory;
 interface AddCategoryFormProps {
   onClose: () => void;
   onCategoryCreated?: () => void;
+  categoryToEdit?: {
+    id: string | number;
+    name: string;
+    isActive: boolean;
+  };
+  onCategoryUpdated?: () => void;
 }
 
-const AddCategoryForm: React.FC<AddCategoryFormProps> = ({ onClose, onCategoryCreated }) => {
-  const [name, setName] = useState("");
-  const [isActive, setIsActive] = useState(true);
+const AddCategoryForm: React.FC<AddCategoryFormProps> = ({ onClose, onCategoryCreated, categoryToEdit, onCategoryUpdated }) => {
+  const [name, setName] = useState(categoryToEdit?.name || "");
+  const [isActive, setIsActive] = useState<boolean>(categoryToEdit?.isActive || true);
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const { run, loading, error, reset } = useAsync(createCategory, {
+  const { run: createRun, loading, error, reset } = useAsync(createCategory, {
     onSuccess: () => {
       toast.success("Category created successfully");
       setName("");
@@ -50,6 +66,20 @@ const AddCategoryForm: React.FC<AddCategoryFormProps> = ({ onClose, onCategoryCr
     },
     onError: (err: any) => {
       const errorMessage = err?.message || "Failed to create category";
+      toast.error(errorMessage);
+    },
+  });
+  
+  const { run: updateRun } = useAsync(updateCategory, {
+    onSuccess: () => {
+      toast.success("Category updated successfully");
+      setName("");
+      setIsActive(true);
+      onClose();
+      onCategoryUpdated?.();
+    },
+    onError: (err: any) => {
+      const errorMessage = err?.message || "Failed to update category";
       toast.error(errorMessage);
     },
   });
@@ -63,10 +93,20 @@ const AddCategoryForm: React.FC<AddCategoryFormProps> = ({ onClose, onCategoryCr
       setValidationError("Category name is required");
       return;
     }
-    await run({ 
-      name: trimmed,
-      isActive: isActive
-    });
+    
+    if (categoryToEdit) {
+      // Update existing category
+      await updateRun(categoryToEdit.id, { 
+        name: trimmed,
+        isActive: isActive
+      });
+    } else {
+      // Create new category
+      await createRun({ 
+        name: trimmed,
+        isActive: isActive
+      });
+    }
   };
 
   return (

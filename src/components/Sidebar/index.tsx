@@ -2,6 +2,7 @@ import {
   CableCarIcon,
   Calendar,
   FileQuestion,
+  GalleryHorizontal,
   LayoutDashboard,
   LogOutIcon,
   MessageCircle,
@@ -9,6 +10,7 @@ import {
   Scale3DIcon,
   Speaker,
   Ticket,
+  Mail,
 } from "lucide-react";
 import React, { type ReactNode } from "react";
 import NavItem from "./NavItem";
@@ -31,6 +33,13 @@ const navMenu: I_NAVMENU[] = [
     children: [], // array is valid now
     icon: <LayoutDashboard />,
     path: "/dashboard",
+  },
+
+   {
+    item: "Category",
+    children: [], // array is valid now
+    icon: <CableCarIcon />,
+    path: "/category",
   },
 
   {
@@ -77,17 +86,24 @@ const navMenu: I_NAVMENU[] = [
     icon: <MessageCircle />,
     path: "/magzine",
   },
-  {
-    item: "Category",
-    children: [], // array is valid now
-    icon: <CableCarIcon />,
-    path: "/category",
-  },
+ 
   {
     item: "Agenda",
     children: [], // array is valid now
     icon: <Calendar />,
     path: "/agenda",
+  },
+  {
+    item: "Gallery",
+    children: [], // array is valid now
+    icon: <GalleryHorizontal />,
+    path: "/gallery",
+  },
+  {
+    item: "Subscribe",
+    children: [], // array is valid now
+    icon: <Mail />, // Using Mail icon for subscribe
+    path: "/subscribe",
   },
 ];
 

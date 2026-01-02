@@ -1,32 +1,49 @@
 import { API_BASE_URL } from "../../utils/config";
 
-export interface CreateEventData {
-  name: string;
-  description: string;
-  content?: string;
-  venue: string;
-  location: string;
-  dateFrom: string;
-  dateTo: string;
-  bannerUrl: string;
-  timeFrom: string;
-  timeTo: string;
-  slug: string;
-  categories: string[];
+export interface CreateGalleryData {
+  title: string;
+  filePath: string[];
+  eventId: string;
   isActive: boolean;
 }
 
-export interface GetEventsParams {
+export interface GetGalleriesParams {
   page?: number;
   limit?: number;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
   search?: string;
   searchFields?: string;
-  eventType?: string;
+  eventId?: string;
 }
 
-export async function getEvents(params?: GetEventsParams) {
+export interface GalleryResponse {
+  statusCode: number;
+  message: string;
+  timestamp: string;
+  status: boolean;
+  data: {
+    data: Array<{
+      _id: string;
+      title: string;
+      filePath: string | string[];
+      event: {
+        _id: string;
+        name: string;
+      };
+    }>;
+    meta: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNextPage: boolean;
+      hasPrevPage: boolean;
+    };
+  };
+}
+
+export async function getGalleries(params?: GetGalleriesParams) {
   try {
     // Build query string
     const queryParams = new URLSearchParams();
@@ -49,12 +66,12 @@ export async function getEvents(params?: GetEventsParams) {
     if (params?.searchFields) {
       queryParams.append("searchFields", params.searchFields);
     }
-    if (params?.eventType) {
-      queryParams.append("eventType", params.eventType);
+    if (params?.eventId) {
+      queryParams.append("eventId", params.eventId);
     }
 
     const queryString = queryParams.toString();
-    const url = `${API_BASE_URL}/event${queryString ? `?${queryString}` : ""}`;
+    const url = `${API_BASE_URL}/gallery${queryString ? `?${queryString}` : ""}`;
 
     const response = await fetch(url, {
       method: "GET",
@@ -64,23 +81,22 @@ export async function getEvents(params?: GetEventsParams) {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch events: ${response.statusText}`);
+      throw new Error(`Failed to fetch galleries: ${response.statusText}`);
     }
 
-    const data = await response.json();
-    // API returns: { message: "...", data: [...] }
+    const result: GalleryResponse = await response.json();
     return {
-      data: data.data.data || { data: [] },
+      data: result.data,
     };
   } catch (error) {
-    console.error("Error fetching events:", error);
+    console.error("Error fetching galleries:", error);
     throw error;
   }
 }
 
-export async function createEvent(data: CreateEventData) {
+export async function createGallery(data: CreateGalleryData) {
   try {
-    const response = await fetch(`${API_BASE_URL}/event`, {
+    const response = await fetch(`${API_BASE_URL}/gallery`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -91,7 +107,7 @@ export async function createEvent(data: CreateEventData) {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
-        errorData.message || `Failed to create event: ${response.statusText}`
+        errorData.message || `Failed to create gallery: ${response.statusText}`
       );
     }
 
@@ -102,33 +118,33 @@ export async function createEvent(data: CreateEventData) {
       },
     };
   } catch (error) {
-    console.error("Error creating event:", error);
+    console.error("Error creating gallery:", error);
     throw error;
   }
 }
 
-export async function getEventDropdown() {
+export async function deleteGallery(id: string) {
   try {
-    const response = await fetch(`${API_BASE_URL}/event/dropdown`, {
-      method: "GET",
+    const response = await fetch(`${API_BASE_URL}/gallery/${id}`, {
+      method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch event dropdown: ${response.statusText}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message || `Failed to delete gallery: ${response.statusText}`
+      );
     }
 
-    const data = await response.json();
-    // API returns: { message: "...", data: [...] }
+    const result = await response.json();
     return {
-      data: data.data || [],
+      data: result,
     };
   } catch (error) {
-    console.error("Error fetching event dropdown:", error);
+    console.error("Error deleting gallery:", error);
     throw error;
   }
 }
-
-

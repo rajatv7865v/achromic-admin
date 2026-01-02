@@ -116,4 +116,32 @@ export async function deleteCategory(id: string | number) {
   }
 }
 
+export async function updateCategory(id: string | number, data: CategoryData) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/category/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message || `Failed to update category: ${response.statusText}`
+      );
+    }
+
+    const result = await response.json();
+    return {
+      data: {
+        data: result.data || result,
+      },
+    };
+  } catch (error) {
+    console.error("Error updating category:", error);
+    throw error;
+  }
+}
 

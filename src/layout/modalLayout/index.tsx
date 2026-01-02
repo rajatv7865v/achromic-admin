@@ -5,17 +5,19 @@ interface indexInterface {
   children: ReactNode;
   title: string;
   setIsModalShow: React.Dispatch<React.SetStateAction<boolean>>;
+  className?: string;
 }
 
 const ModalLayout: React.FC<indexInterface> = ({
   children,
   title,
   setIsModalShow,
+  className,
 }) => {
   return (
     <section className='absolute top-0 left-0 right-0 bottom-0 z-10 flex items-center justify-center bg-black/50 '>
-      <div className='bg-white w-[35%] min-h-[200px] max-h-[600px] overflow-y-scroll scroll-auto  rounded'>
-        <h3 className='bg-[#ECF0F4] p-2  text-xl text-gray-600 flex items-center justify-between'>
+      <div className={`bg-white ${className || 'w-[35%] min-h-[200px] max-h-[600px] overflow-y-scroll scroll-auto rounded'}`}>
+        <h3 className='bg-[#ECF0F4] p-3 text-xl text-gray-600 flex items-center justify-between font-semibold'>
           {title}
           <button
             onClick={() => setIsModalShow(false)}
@@ -24,7 +26,9 @@ const ModalLayout: React.FC<indexInterface> = ({
             <X color='red' size={22} />
           </button>
         </h3>
-        {children}
+        <div className="p-1">
+          {children}
+        </div>
       </div>
     </section>
   );

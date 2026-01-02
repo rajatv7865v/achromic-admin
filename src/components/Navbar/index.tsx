@@ -10,7 +10,7 @@ const Navbar: React.FC<NavbarInterface> = () => {
   const [isModalShow, setIsModalShow] = useState<boolean>(false);
   return (
     <header className='bg-green py-2 px-10 text-white flex items-center justify-between'>
-      <img src='./images/logo.png' alt='logo' className="w-60" />
+      <img src='./images/logo.webp' alt='logo' className="w-60" />
       <button
         className='flex items-center justify-center gap-3 cursor-pointer'
         onClick={() => setIsModalShow(true)}

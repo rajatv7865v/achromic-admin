@@ -23,9 +23,9 @@ const AddPartner: React.FC<AddEventInterface> = ({
   const { run: fetchEvent } = useAsync(getEvents);
   useEffect(() => {
     const loadEvents = async () => {
-      const res: any = await fetchEvent();
-      if (res?.data?.data) {
-        const events = res.data.data.map((cat: any) => ({
+      const res: any = await fetchEvent({ eventType: "UPCOMING" });
+      if (res?.data) {
+        const events = res.data.map((cat: any) => ({
           id: cat.id || cat._id,
           name: cat.name || cat.category,
           isActive: cat.isActive ?? true,
@@ -39,8 +39,9 @@ const AddPartner: React.FC<AddEventInterface> = ({
   const [formData, setFormData] = useState({
     companyName: "",
     companyUrl: "",
-    partnerType: "",
+    partnerType: "GOLD_PARTNER",
     eventId: "",
+    imagePath: "",
   });
 
   const { run, loading } = useAsync(createPartner, {
@@ -51,6 +52,7 @@ const AddPartner: React.FC<AddEventInterface> = ({
         companyUrl: "",
         partnerType: "",
         eventId: "",
+        imagePath: "",
       });
       setBannerFile(null);
       setIsModalShow(false);
@@ -85,6 +87,7 @@ const AddPartner: React.FC<AddEventInterface> = ({
         setValidationError("Please fill all required fields");
         return;
       }
+
     } catch (error) {
       toast.error("Failed to create speaker");
     }
@@ -145,22 +148,29 @@ const AddPartner: React.FC<AddEventInterface> = ({
               {availableEvents.length === 0 ? (
                 <p className="text-gray-500 text-sm">Loading Type...</p>
               ) : (
-                <div className="space-y-2">
-                <select name="partnerTyoe" id="" onChange={(e) =>
-                setFormData({ ...formData, partnerType: e.target.value })
-              }>
-                {['sponsor','media','partner','other'].map((event: any) => (
-                  <option value={event}>{event}</option>
-                ))}
-                </select>
+                <div className="space-y-2 w-full">
+                  <select
+                    name="partnerType"
+                    className="w-full"
+                    id=""
+                    value={formData.partnerType}
+                    onChange={(e) =>
+                      setFormData({ ...formData, partnerType: e.target.value })
+                    }
+                  >
+                    {[
+                      "GOLD_PARTNER",
+                      "PLATINUM_PARTNER",
+                      "SILVER_PARTNER",
+                      "BRONZE_PARTNER",
+                      "OTHER_PARTNER",
+                    ].map((event: any) => (
+                      <option value={event}>{event}</option>
+                    ))}
+                  </select>
                 </div>
               )}
             </div>
-            {formData.eventId.length > 0 && (
-              <p className="text-xs text-gray-500 mt-1">
-                {formData.eventId.length} event(s) selected
-              </p>
-            )}
           </div>{" "}
           <div>
             <label htmlFor="" className="text-[13px] px-1 text-gray-500">
@@ -170,7 +180,7 @@ const AddPartner: React.FC<AddEventInterface> = ({
               type="text"
               className="border-[1px] p-2 w-full rounded border-gray-400"
               placeholder="Event Name"
-              value={formData.companyName}
+              value={formData?.companyName}
               onChange={(e) =>
                 setFormData({ ...formData, companyName: e.target.value })
               }
@@ -199,10 +209,10 @@ const AddPartner: React.FC<AddEventInterface> = ({
             <input
               type="file"
               className="border-[1px] p-2 w-full rounded border-gray-400 text-gray-500"
-              placeholder="Event Name"
-              value={formData.partnerType}
+              placeholder=""
+              value={formData.imagePath}
               onChange={(e) =>
-                setFormData({ ...formData, partnerType: e.target.value })
+                setFormData({ ...formData, imagePath: e.target.value })
               }
               disabled={loading}
             />
