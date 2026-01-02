@@ -37,6 +37,7 @@ const AddGalleryForm: React.FC<AddGalleryFormProps> = ({ onClose }) => {
   });
   const [_, setValidationError] = useState<string | null>(null);
   const [availableEvents, setAvailableEvents] = useState<[]>([]);
+  const [fileUploadLoading, setFileUploadLoading] = useState(false);
 
   const { run, loading, reset } = useAsync(createGallery, {
     onSuccess: () => {
@@ -80,13 +81,20 @@ const AddGalleryForm: React.FC<AddGalleryFormProps> = ({ onClose }) => {
 
   const handleFileChange = async (e: any) => {
     const files = Array.from(e.target.files);
-    if (files) {
-      const ck:any = await uploadMultipleFile({ files });
-      setFormData({
-        ...formData,
-        filePath:[...ck.data.files.map((item:any)=>item.path)]
-      })
-      console.log("afetr upload", ck.data.files);
+    if (files && files.length > 0) {
+      setFileUploadLoading(true);
+      try {
+        const ck: any = await uploadMultipleFile({ files });
+        setFormData({
+          ...formData,
+          filePath: [...ck.data.files.map((item: any) => item.path)]
+        });
+        console.log("after upload", ck.data.files);
+      } catch (error) {
+        console.error("Error uploading files:", error);
+      } finally {
+        setFileUploadLoading(false);
+      }
     }
   };
 
@@ -231,9 +239,9 @@ const AddGalleryForm: React.FC<AddGalleryFormProps> = ({ onClose }) => {
       <button
         type="submit"
         className="bg-green py-2 w-full flex items-center text-white justify-center rounded-sm text-xl cursor-pointer disabled:opacity-60"
-        disabled={loading}
+        disabled={loading || fileUploadLoading}
       >
-        {loading ? "Creating..." : "Submit"}
+        {loading ? "Creating..." : fileUploadLoading ? "Processing..." : "Submit"}
       </button>
     </form>
   );
