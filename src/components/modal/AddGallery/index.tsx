@@ -65,12 +65,13 @@ const AddGalleryForm: React.FC<AddGalleryFormProps> = ({ onClose }) => {
   const { run: fetchEvent } = useAsync(getEvents);
   useEffect(() => {
     const loadEvents = async () => {
-      const res: any = await fetchEvent({ eventType: "PAST", limit: 100, search: searchTerm, searchFields: "name, location" });
+      const res: any = await fetchEvent({ eventType: "PAST", limit: 100, search: searchTerm, searchFields: "name, location, dateFrom" });
       if (res?.data) {
         const events: EventItem[] = await res.data.map((cat: any) => ({
           id: cat.id || cat._id,
           name: cat.name || cat.category,
           location: cat.location || cat.address || "",
+          dateFrom: cat.dateFrom || cat.dateFrom || "",
           isActive: cat.isActive ?? true,
         }));
         setAvailableEvents(events);
@@ -175,7 +176,7 @@ const AddGalleryForm: React.FC<AddGalleryFormProps> = ({ onClose }) => {
                     disabled={loading}
                     className="rounded border-gray-300"
                   />
-                  <span className="text-sm text-gray-700">{event.name} - {event?.location}</span>
+                  <span className="text-sm text-gray-700">{event.name} - {event?.location} - {event?.dateFrom}</span>
                 </label>
               ))}
             </div>
