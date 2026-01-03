@@ -36,8 +36,17 @@ const AddGalleryForm: React.FC<AddGalleryFormProps> = ({ onClose }) => {
     filePath: [] as string[],
   });
   const [_, setValidationError] = useState<string | null>(null);
-  const [availableEvents, setAvailableEvents] = useState<[]>([]);
+  
+  interface EventItem {
+    id: string;
+    name: string;
+    location?: string;
+    isActive: boolean;
+  }
+  
+  const [availableEvents, setAvailableEvents] = useState<EventItem[]>([]);
   const [fileUploadLoading, setFileUploadLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { run, loading, reset } = useAsync(createGallery, {
     onSuccess: () => {
@@ -56,19 +65,19 @@ const AddGalleryForm: React.FC<AddGalleryFormProps> = ({ onClose }) => {
   const { run: fetchEvent } = useAsync(getEvents);
   useEffect(() => {
     const loadEvents = async () => {
-      const res: any = await fetchEvent({ eventType: "PAST",limit:100 });
-      console.log("events", res.data);
+      const res: any = await fetchEvent({ eventType: "PAST", limit: 100, search: searchTerm, searchFields: "name, location" });
       if (res?.data) {
-        const events = await res.data.map((cat: any) => ({
+        const events: EventItem[] = await res.data.map((cat: any) => ({
           id: cat.id || cat._id,
           name: cat.name || cat.category,
+          location: cat.location || cat.address || "",
           isActive: cat.isActive ?? true,
         }));
         setAvailableEvents(events);
       }
     };
     loadEvents();
-  }, [fetchEvent]);
+  }, [fetchEvent, searchTerm]);
 
 
 
@@ -138,12 +147,22 @@ const AddGalleryForm: React.FC<AddGalleryFormProps> = ({ onClose }) => {
         <label htmlFor="" className="text-[13px] px-1 text-gray-500">
           Choose Event <span className="text-red font-semibold">*</span>
         </label>
+        <input
+          type="text"
+          placeholder="Search events..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded mb-2"
+        />
         <div className="border-[1px] p-3 w-full rounded border-gray-400 bg-white max-h-40 overflow-y-auto" >
           {availableEvents.length === 0 ? (
             <p className="text-gray-500 text-sm">Loading events...</p>
           ) : (
             <div className="space-y-2">
-              {availableEvents.map((event: any) => (
+              {availableEvents.filter(event =>
+                event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (event.location && event.location.toLowerCase().includes(searchTerm.toLowerCase()))
+              ).map((event: any) => (
                 <label
                   key={event.id}
                   className="flex items-center space-x-2 cursor-pointer"
@@ -156,7 +175,7 @@ const AddGalleryForm: React.FC<AddGalleryFormProps> = ({ onClose }) => {
                     disabled={loading}
                     className="rounded border-gray-300"
                   />
-                  <span className="text-sm text-gray-700">{event.name}</span>
+                  <span className="text-sm text-gray-700">{event.name} - {event?.location}</span>
                 </label>
               ))}
             </div>
